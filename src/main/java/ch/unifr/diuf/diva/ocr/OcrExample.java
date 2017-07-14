@@ -168,7 +168,7 @@ public class OcrExample {
                             //download visualization
                             String url = fileValues.getString("url");
                             //TODO: change this paths accordingly
-                            File outputFile = new File("visualization/trainingError.png");
+                            File outputFile = new File("outputs/visualization/trainingError.png");
                             FileUtils.copyURLToFile(new URL(url), outputFile);
                         }
                     }
