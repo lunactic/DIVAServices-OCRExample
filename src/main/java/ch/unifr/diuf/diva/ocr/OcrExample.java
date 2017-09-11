@@ -45,14 +45,14 @@ public class OcrExample {
     public static void main(String args[]) {
         OcrExample example = new OcrExample();
         //upload training data
-        example.uploadData("trainData", "ocr_train_example");
+        example.uploadData("trainData", "ocr_test_marcel2");
         //start training process
-        example.runTraining("ocr_train_example", 46, 500, 100);
+        //example.runTraining("ocr_test_marcel", 46, 500, 100);
         //upload testing data and model
-        example.uploadModel("outputs/models/minModel.pyrnn.gz");
-        example.uploadData("recoData", "ocr_reco_example");
+        //example.uploadModel("outputs/models/minModel.pyrnn.gz");
+        //example.uploadData("recoData", "ocr_reco_example");
         //run recognition
-        example.runRecognition("ocr_reco_example", "ocr_models/greekPoly.gz");
+        //example.runRecognition("ocr_reco_example", "ocr_models/greekPoly.gz");
 
     }
 
@@ -112,19 +112,18 @@ public class OcrExample {
                 fileValues.add(values);
             }
             JSONObject reqBody = new JSONObject();
+            //create a POST request to create the collection with the first file
             reqBody.put("name", collectionName);
             //parse the stuff into the JSON Object
             JSONArray files = new JSONArray();
-            for (Map<String, String> values : fileValues) {
-                JSONObject object = new JSONObject();
-                object.put("type", values.get("type"));
-                object.put("value", values.get("value"));
-                object.put("name", values.get("name"));
-                object.put("extension", values.get("extension"));
-                files.put(object);
-            }
+            Map<String, String> values = fileValues.get(0);
+            JSONObject object = new JSONObject();
+            object.put("type", values.get("type"));
+            object.put("value", values.get("value"));
+            object.put("name", values.get("name"));
+            object.put("extension", values.get("extension"));
+            files.put(object);
             reqBody.put("files", files);
-            //fetch collection name
             HttpResponse<JsonNode> response = Unirest.post("http://divaservices.unifr.ch/api/v2/collections")
                     .header("content-type", "application/json")
                     .body(reqBody.toString())
@@ -133,6 +132,24 @@ public class OcrExample {
             JSONObject jsonResponse = response.getBody().getObject();
             if (!jsonResponse.has("collection")) {
                 logger.error("Collection most likely already existed");
+            }
+
+            for (int i = 1; i < fileValues.size(); i++) {
+                reqBody = new JSONObject();
+                files = new JSONArray();
+                values = fileValues.get(i);
+                object = new JSONObject();
+                object.put("type", values.get("type"));
+                object.put("value", values.get("value"));
+                object.put("name", values.get("name"));
+                object.put("extension", values.get("extension"));
+                files.put(object);
+                reqBody.put("files", files);
+                Unirest.put("http://divaservices.unifr.ch/api/v2/collections/"+collectionName)
+                        .header("content-type", "application/json")
+                        .body(reqBody.toString())
+                        .asJson();
+                Thread.sleep(200);
             }
         } catch (Exception ex) {
             logger.error(ex.getLocalizedMessage(), ex);
